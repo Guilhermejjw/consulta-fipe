@@ -19,13 +19,20 @@ function App() {
     localStorage.setItem('garagem_fipe', JSON.stringify(favoritos));
   }, [favoritos]);
 
+  // Remove um veículo da lista de favoritos (Garagem) comparando o ID único fornecido
+  const removerDosFavoritos = (idParaRemover) => {
+    setFavoritos((prev) => 
+      prev.filter((item) => (item.id || `${item.CodigoFipe}-${item.AnoModelo}`) !== idParaRemover)
+    );
+  };
+
   return (
     <div className="app-container">
       {/* Componente do Cabeçalho */}
       <Header />
 
       {/* Componente Principal: recebe os favoritos e a função para guardar novos veículos */}
-      <Main favoritos={favoritos} setFavoritos={setFavoritos} />
+      <Main favoritos={favoritos} setFavoritos={setFavoritos} removerDosFavoritos={removerDosFavoritos} />
 
       {/* Componente do Comparador: recebe a lista de favoritos para os poder comparar lado a lado */}
       <Comparador favoritos={favoritos} />

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './Main.css';
 
 // 1. O componente recebe "favoritos" e "setFavoritos" via props do App.jsx
-export default function Main({ favoritos, setFavoritos }) {
+export default function Main({ favoritos, setFavoritos, removerDosFavoritos }) {
   // ESTADOS DO REACT (Guarda as escolhas do usuário e os dados da API)
   const [tipoVeiculo, setTipoVeiculo] = useState('carros'); // Padrão: carros
   const [marcas, setMarcas] = useState([]);                 // Lista de marcas
@@ -244,6 +244,35 @@ export default function Main({ favoritos, setFavoritos }) {
           <button className="btn-favoritar" onClick={adicionarAosFavoritos}>
             ❤️ Salvar na Garagem
           </button>
+        </div>
+      )}
+
+      {/* SEÇÃO DA GARAGEM / FAVORITOS */}
+      {favoritos && favoritos.length > 0 && (
+        <div className="garagem-container">
+          <h3>🏎️ Sua Garagem</h3>
+          <div className="garagem-grid">
+            {favoritos.map((veiculo) => (
+              <div key={veiculo.id || `${veiculo.CodigoFipe}-${veiculo.AnoModelo}`} className="card-garagem">
+                <h4>{veiculo.Marca} {veiculo.Modelo}</h4>
+                <p><strong>Preço:</strong> {veiculo.Valor}</p>
+                <p>
+                  <strong>Ano:</strong>{' '}
+                  {String(veiculo.AnoModelo).includes('32000') || String(veiculo.AnoModelo).toLowerCase().includes('quilômetro')
+                    ? 'Zero KM'
+                    : veiculo.AnoModelo}
+                </p>
+
+                {/* BOTÃO PARA REMOVER DA GARAGEM */}
+                <button 
+                  className="btn-remover-favorito" 
+                  onClick={() => removerDosFavoritos(veiculo.id || `${veiculo.CodigoFipe}-${veiculo.AnoModelo}`)}
+                >
+                  🗑️ Remover da Garagem
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </main>

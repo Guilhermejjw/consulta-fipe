@@ -20,8 +20,9 @@ export function Comparador({ favoritos }) {
   const [veiculo2Id, setVeiculo2Id] = React.useState(favoritos[1]?.id || '');
 
   // Busca os dados completos dos veículos selecionados
-  const veiculo1 = favoritos.find((v) => v.id === veiculo1Id) || favoritos[0];
-  const veiculo2 = favoritos.find((v) => v.id === veiculo2Id) || favoritos[1];
+  // Sincronização estrita de ID convertendo tudo para String (evita carregar favoritos[0] por engano)
+  const veiculo1 = favoritos.find((v) => String(v.id || `${v.CodigoFipe}-${v.AnoModelo}`) === String(veiculo1Id)) || favoritos[0];
+  const veiculo2 = favoritos.find((v) => String(v.id || `${v.CodigoFipe}-${v.AnoModelo}`) === String(veiculo2Id)) || favoritos[1];
 
   // Função interna para analisar a diferença de preço e explicar os motivos
   // Função auxiliar para converter o texto "R$ 45.116,00" em número (45116.00)
@@ -63,7 +64,7 @@ export function Comparador({ favoritos }) {
 
     if (ehZeroCaro && !ehZeroBarato) {
       motivos.push(
-        `✨ <strong>Condição do Veículo:</strong> O ${maisCaro.Modelo.replace(/\.+$/, '')} é um modelo **Zero KM**, o que justifica o valor superior por ser um veículo novo de fábrica sem desgaste.`
+        `✨ <strong>Condição do Veículo:</strong> O ${maisCaro.Modelo.replace(/\.+$/, '')} é um modelo <strong>Zero KM</strong>, o que justifica o valor superior por ser um veículo novo de fábrica sem desgaste.`
       );
     } else if (!ehZeroCaro && ehZeroBarato) {
       motivos.push(
@@ -146,7 +147,7 @@ if (motorCaro && motorBarato && motorCaro.tipo === motorBarato.tipo && motorCaro
           <label>Veículo 1:</label>
           <select value={veiculo1Id} onChange={(e) => setVeiculo1Id(e.target.value)}>
             {favoritos.map((fav) => (
-              <option key={fav.id} value={fav.id}>
+              <option key={fav.id || `${fav.CodigoFipe}-${fav.AnoModelo}`} value={fav.id || `${fav.CodigoFipe}-${fav.AnoModelo}`}>
                 {fav.Marca} {fav.Modelo} ({fav.AnoModelo})
               </option>
             ))}
