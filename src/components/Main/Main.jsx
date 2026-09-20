@@ -228,9 +228,9 @@ export default function Main({ favoritos, setFavoritos }) {
           <div className="detalhes-grid">
             <p>
               <strong>Ano/Modelo:</strong>{' '}
-              {String(resultado.AnoModelo).includes('32000')
-                ? 'Zero KM'
-                : resultado.AnoModelo}
+              {String(resultado.AnoModelo).includes('32000') || String(resultado.AnoModelo).toLowerCase().includes('quilômetro')
+              ? 'Zero KM'
+              : resultado.AnoModelo}
             </p>
             <p><strong>Combustível:</strong> {resultado.Combustivel}</p>
             <p><strong>Código FIPE:</strong> {resultado.CodigoFipe}</p>
