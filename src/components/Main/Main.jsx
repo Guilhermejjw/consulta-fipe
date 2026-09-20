@@ -148,7 +148,7 @@ function Main() {
             <option value="">-- Selecione um Modelo --</option>
             {modelos.map((mod) => (
               <option key={mod.codigo} value={mod.codigo}>
-                {mod.nome.replace('FATOR', 'FACTOR')}
+                {mod.nome.replace(FATOR/gi, 'FACTOR')}
               </option>
             ))}
           </select>
@@ -200,7 +200,12 @@ function Main() {
 
 
           <div className="detalhes-grid">
-            <p><strong>Ano/Modelo:</strong> {resultado.AnoModelo}</p>
+            <p>
+            <strong>Ano/Modelo:</strong>{' '}
+            {String(resultado.AnoModelo).includes('32000') || String(resultado.AnoModelo) === '32000'
+                ? 'Zero KM'
+                : resultado.AnoModelo}
+            </p>
             <p><strong>Combustível:</strong> {resultado.Combustivel}</p>
             <p><strong>Código FIPE:</strong> {resultado.CodigoFipe}</p>
             <p><strong>Mês de Referência:</strong> {resultado.MesReferencia}</p>
