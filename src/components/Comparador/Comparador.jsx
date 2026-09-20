@@ -1,137 +1,228 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Comparador.css';
 
 export function Comparador({ favoritos }) {
-  const [veiculo1Id, setVeiculo1Id] = useState('');
-  const [veiculo2Id, setVeiculo2Id] = useState('');
-
-  // Busca os veículos selecionados da lista de favoritos/garagem
-  const v1 = favoritos.find((f) => f.id === veiculo1Id);
-  const v2 = favoritos.find((f) => f.id === veiculo2Id);
-
-  // Converte a string "R$ 20.124,00" para o número 20124.00 para fazer cálculos
-  const parsePreco = (valorString) => {
-    if (!valorString) return 0;
-    return parseFloat(
-      valorString
-        .replace('R$', '')
-        .replace('.', '')
-        .replace(',', '.')
-        .trim()
+  // Se não houver pelo menos 2 veículos salvos, mostra a mensagem de aviso
+  if (!favoritos || favoritos.length < 2) {
+    return (
+      <div className="comparador-container">
+        <h3>⚖️ Comparador de Veículos</h3>
+        <p>Selecione dois veículos da sua Garagem para comparar os valores lado a lado.</p>
+        <div className="comparador-aviso">
+          ⚠️ Você precisa ter pelo menos 2 veículos salvos na Garagem para realizar uma comparação.
+        </div>
+      </div>
     );
+  }
+
+  // Estados locais para guardar a escolha dos dois veículos na tela
+  const [veiculo1Id, setVeiculo1Id] = React.useState(favoritos[0]?.id || '');
+  const [veiculo2Id, setVeiculo2Id] = React.useState(favoritos[1]?.id || '');
+
+  // Busca os dados completos dos veículos selecionados
+  const veiculo1 = favoritos.find((v) => v.id === veiculo1Id) || favoritos[0];
+  const veiculo2 = favoritos.find((v) => v.id === veiculo2Id) || favoritos[1];
+
+  // Função interna para analisar a diferença de preço e explicar os motivos
+  // Função auxiliar para converter o texto "R$ 45.116,00" em número (45116.00)
+  const converterPrecoParaNumero = (precoString) => {
+    if (!precoString) return 0;
+    const limpo = precoString.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+    return parseFloat(limpo) || 0;
   };
 
-  const preco1 = v1 ? parsePreco(v1.Valor) : 0;
-  const preco2 = v2 ? parsePreco(v2.Valor) : 0;
+  const gerarAnalisePreco = (v1, v2) => {
+    if (!v1 || !v2) return null;
 
-  const diferencaReais = Math.abs(preco1 - preco2);
-  const maiorPreco = Math.max(preco1, preco2);
-  const diferencaPorcentagem = maiorPreco > 0 
-    ? ((diferencaReais / Math.min(preco1, preco2)) * 100).toFixed(1) 
-    : 0;
+    const preco1 = converterPrecoParaNumero(v1.Valor);
+    const preco2 = converterPrecoParaNumero(v2.Valor);
+
+    // Se os preços forem idênticos
+    if (preco1 === preco2) {
+      return {
+        diferenca: 0,
+        maisCaro: v1,
+        maisBarato: v2,
+        motivos: ['💡 Ambos os veículos possuem o mesmo valor na Tabela FIPE.']
+      };
+    }
+
+    const diferenca = Math.abs(preco1 - preco2);
+    const maisCaro = preco1 > preco2 ? v1 : v2;
+    const maisBarato = preco1 > preco2 ? v2 : v1;
+
+    const anoCaro = parseInt(maisCaro.AnoModelo) || 0;
+    const anoBarato = parseInt(maisBarato.AnoModelo) || 0;
+    const difAnos = Math.abs(anoCaro - anoBarato);
+
+    const motivos = [];
+
+    // 1. Análise por Ano de Fabricação / Zero KM
+    const ehZeroCaro = anoCaro === 32000 || String(maisCaro.AnoModelo).toLowerCase().includes('quilômetro');
+    const ehZeroBarato = anoBarato === 32000 || String(maisBarato.AnoModelo).toLowerCase().includes('quilômetro');
+
+    if (ehZeroCaro && !ehZeroBarato) {
+      motivos.push(
+        `✨ <strong>Condição do Veículo:</strong> O ${maisCaro.Modelo.replace(/\.+$/, '')} é um modelo **Zero KM**, o que justifica o valor superior por ser um veículo novo de fábrica sem desgaste.`
+      );
+    } else if (!ehZeroCaro && ehZeroBarato) {
+      motivos.push(
+        `✨ <strong>Condição do Veículo:</strong> O ${maisCaro.Modelo.replace(/\.+$/, '')} é usado (${anoCaro}), porém mantém valor superior ao modelo Zero KM (${anoBarato}) devido à versão superior ou equipamentos.`
+      );
+    } else if (!ehZeroCaro && !ehZeroBarato) {
+      if (anoCaro > anoBarato) {
+        motivos.push(
+          `📅 <strong>Ano de Fabricação:</strong> O ${maisCaro.Modelo.replace(/\.+$/, '')} é ${difAnos} ano(s) mais novo (${anoCaro} vs ${anoBarato}), o que justifica o valor superior.`
+        );
+      } else if (anoCaro < anoBarato) {
+        motivos.push(
+          `📅 <strong>Ano de Fabricação:</strong> O ${maisCaro.Modelo.replace(/\.+$/, '')} é ${difAnos} ano(s) mais antigo (${anoCaro} vs ${anoBarato}), mas mantém um valor superior devido à versão ou equipamentos.`
+        );
+      }
+    }
+
+    // 2. Análise por Versão / Equipamentos
+    const nomeCaro = maisCaro.Modelo.toLowerCase();
+    const nomeBarato = maisBarato.Modelo.toLowerCase();
+
+    if (nomeCaro.includes('comfort') && !nomeBarato.includes('comfort')) {
+      motivos.push('🚗 <strong>Pacote de Equipamentos:</strong> A versão COMFORT inclui itens adicionais de série.');
+    }
+
+    if (nomeCaro.includes('turbo') && !nomeBarato.includes('turbo')) {
+      motivos.push('⚡ <strong>Motorização:</strong> O motor TURBO oferece maior potência e valor agregado.');
+    }
+
+    if ((nomeCaro.includes('aut') || nomeCaro.includes('automatico')) && !nomeBarato.includes('aut')) {
+      motivos.push('🕹️ <strong>Câmbio:</strong> Modelos com transmissão automática possuem custo superior no mercado.');
+    }
+
+    // 3. Análise por Cilindrada / Motorização (Ex: 125cc vs 150cc, 1.0 vs 1.6, etc.)
+    // 3. Análise por Cilindrada / Motorização (Ex: 125i vs 150, 1.0 vs 1.6)
+const extrairCilindradaOuMotor = (nome) => {
+  // Captura números de cilindrada mesmo que colados com 'i', 'cc', 'f' (ex: 125i, 150, 250cc)
+  const matchCilindrada = nome.match(/(100|125|150|160|190|200|250|300|400|500|600|650|700|800|1000)(i|cc|f|\b)/i);
+  if (matchCilindrada) return { tipo: 'cc', valor: parseInt(matchCilindrada[1]) };
+
+  // Captura motorização de carros (ex: 1.0, 1.4, 1.6, 2.0, 3.0)
+  const matchMotorCarro = nome.match(/(1\.0|1\.3|1\.4|1\.5|1\.6|1\.8|2\.0|2\.4|3\.0)/);
+  if (matchMotorCarro) return { tipo: 'litros', valor: parseFloat(matchMotorCarro[1]) };
+
+  return null;
+};
+
+const motorCaro = extrairCilindradaOuMotor(nomeCaro);
+const motorBarato = extrairCilindradaOuMotor(nomeBarato);
+
+if (motorCaro && motorBarato && motorCaro.tipo === motorBarato.tipo && motorCaro.valor > motorBarato.valor) {
+  if (motorCaro.tipo === 'cc') {
+    motivos.push(
+      `🏍️ <strong>Cilindrada / Motorização:</strong> O modelo mais caro possui maior cilindrada (${motorCaro.valor}cc vs ${motorBarato.valor}cc), oferecendo maior potência e torque.`
+    );
+  } else {
+    motivos.push(
+      `🚗 <strong>Motorização:</strong> O modelo mais caro possui motor de maior capacidade (${motorCaro.valor} vs ${motorBarato.valor}), garantindo melhor desempenho.`
+    );
+  }
+}
+
+    // 3. Caso não haja palavra-chave identificada
+    if (motivos.length === 0) {
+      motivos.push('💡 <strong>Variação de Mercado:</strong> A diferença reflete as cotações oficiais da Tabela FIPE para pacotes de fábrica e acabamentos específicos.');
+    }
+
+    return { diferenca, maisCaro, maisBarato, motivos };
+  };
+  const analise = gerarAnalisePreco(veiculo1, veiculo2);
 
   return (
     <div className="comparador-container">
-      <h2>⚖️ Comparador de Veículos</h2>
-      <p className="comparador-sub">
-        Selecione dois veículos da sua Garagem para comparar os valores lado a lado.
-      </p>
+      <h3>⚖️ Comparador de Veículos</h3>
+      <p>Selecione dois veículos da sua Garagem para comparar os valores lado a lado.</p>
 
-      {favoritos.length < 2 ? (
-        <div className="comparador-aviso">
-          ⚠️ Você precisa ter pelo menos <strong>2 veículos salvos na Garagem</strong> para realizar uma comparação.
+      {/* SELETORES DE VEÍCULOS */}
+      <div className="comparador-seletores">
+        <div className="seletor-box">
+          <label>Veículo 1:</label>
+          <select value={veiculo1Id} onChange={(e) => setVeiculo1Id(e.target.value)}>
+            {favoritos.map((fav) => (
+              <option key={fav.id} value={fav.id}>
+                {fav.Marca} {fav.Modelo} ({fav.AnoModelo})
+              </option>
+            ))}
+          </select>
         </div>
-      ) : (
+
+        <div className="seletor-box">
+          <label>Veículo 2:</label>
+          <select value={veiculo2Id} onChange={(e) => setVeiculo2Id(e.target.value)}>
+            {favoritos.map((fav) => (
+              <option key={fav.id} value={fav.id}>
+                {fav.Marca} {fav.Modelo} ({fav.AnoModelo})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* TABELA COMPARATIVA LADO A LADO */}
+      {veiculo1 && veiculo2 && (
         <>
-          <div className="comparador-seletor-grid">
-            <div className="seletor-box">
-              <label>Veículo 1:</label>
-              <select 
-                value={veiculo1Id} 
-                onChange={(e) => setVeiculo1Id(e.target.value)}
-              >
-                <option value="">-- Selecione o 1º Veículo --</option>
-                {favoritos.map((fav) => (
-                  <option key={fav.id} value={fav.id}>
-                    {fav.Marca} {fav.Modelo} ({fav.AnoModelo})
-                  </option>
+          <table className="tabela-comparativa">
+            <thead>
+              <tr>
+                <th>Característica</th>
+                <th>{veiculo1.Modelo}</th>
+                <th>{veiculo2.Modelo}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Marca</strong></td>
+                <td>{veiculo1.Marca}</td>
+                <td>{veiculo2.Marca}</td>
+              </tr>
+              <tr>
+                <td><strong>Ano / Modelo</strong></td>
+                <td>{String(veiculo1.AnoModelo).includes('32000') ? 'Zero KM' : veiculo1.AnoModelo}</td>
+                <td>{String(veiculo2.AnoModelo).includes('32000') ? 'Zero KM' : veiculo2.AnoModelo}</td>
+              </tr>
+              <tr>
+                <td><strong>Preço FIPE</strong></td>
+                <td className="preco-celula">{veiculo1.Valor}</td>
+                <td className="preco-celula">{veiculo2.Valor}</td>
+              </tr>
+              <tr>
+                <td><strong>Combustível</strong></td>
+                <td>{veiculo1.Combustivel}</td>
+                <td>{veiculo2.Combustivel}</td>
+              </tr>
+              <tr>
+                <td><strong>Código FIPE</strong></td>
+                <td>{veiculo1.CodigoFipe}</td>
+                <td>{veiculo2.CodigoFipe}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* NOVA CAIXA DE ANÁLISE DE MOTIVOS */}
+          {analise && (
+            <div className="analise-container">
+              <h4>📊 Análise de Valorização</h4>
+              <p className="resumo-diferenca">
+                O <strong>{analise.maisCaro.Modelo}</strong> é{' '}
+                <span className="destaque-preco">
+                  R$ {analise.diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} mais caro
+                </span>{' '}
+                que o {analise.maisBarato.Modelo}.
+              </p>
+
+              <h5>Por que essa diferença existe?</h5>
+              <ul className="lista-motivos">
+                {analise.motivos.map((motivo, index) => (
+                  <li key={index} dangerouslySetInnerHTML={{ __html: motivo }} />
                 ))}
-              </select>
-            </div>
-
-            <div className="seletor-box">
-              <label>Veículo 2:</label>
-              <select 
-                value={veiculo2Id} 
-                onChange={(e) => setVeiculo2Id(e.target.value)}
-              >
-                <option value="">-- Selecione o 2º Veículo --</option>
-                {favoritos.map((fav) => (
-                  <option key={fav.id} value={fav.id}>
-                    {fav.Marca} {fav.Modelo} ({fav.AnoModelo})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* TABELA COMPARATIVA LADO A LADO */}
-          {v1 && v2 && (
-            <div className="tabela-comparativa-wrapper">
-              <table className="tabela-comparativa">
-                <thead>
-                  <tr>
-                    <th>Característica</th>
-                    <th>{v1.Modelo}</th>
-                    <th>{v2.Modelo}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>Marca</strong></td>
-                    <td>{v1.Marca}</td>
-                    <td>{v2.Marca}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Ano / Modelo</strong></td>
-                    <td>{String(v1.AnoModelo).includes('32000') ? 'Zero KM' : v1.AnoModelo}</td>
-                    <td>{String(v2.AnoModelo).includes('32000') ? 'Zero KM' : v2.AnoModelo}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Preço FIPE</strong></td>
-                    <td className={preco1 < preco2 ? 'preco-menor' : 'preco-maior'}>
-                      {v1.Valor}
-                    </td>
-                    <td className={preco2 < preco1 ? 'preco-menor' : 'preco-maior'}>
-                      {v2.Valor}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Combustível</strong></td>
-                    <td>{v1.Combustivel}</td>
-                    <td>{v2.Combustivel}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Código FIPE</strong></td>
-                    <td>{v1.CodigoFipe}</td>
-                    <td>{v2.CodigoFipe}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              {/* RESUMO DA DIFERENÇA FINANCEIRA */}
-              <div className="comparador-resumo">
-                <h3>📊 Análise da Diferença</h3>
-                {preco1 === preco2 ? (
-                  <p>Ambos os veículos possuem exatamente o mesmo valor FIPE.</p>
-                ) : (
-                  <p>
-                    O modelo <strong>{preco1 > preco2 ? v1.Modelo : v2.Modelo}</strong> é{' '}
-                    <strong>R$ {diferencaReais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong> ({diferencaPorcentagem}%) mais caro que o{' '}
-                    <strong>{preco1 < preco2 ? v1.Modelo : v2.Modelo}</strong>.
-                  </p>
-                )}
-              </div>
+              </ul>
             </div>
           )}
         </>

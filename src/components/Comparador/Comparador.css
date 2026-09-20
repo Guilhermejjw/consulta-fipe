@@ -105,3 +105,51 @@
   margin-top: 0;
   color: #38bdf8;
 }
+
+/* CAIXA DE ANÁLISE EXPLICATIVA */
+.analise-container {
+  margin-top: 1.5rem;
+  padding: 1.2rem;
+  background-color: #1e293b;
+  border-radius: 8px;
+  border-left: 4px solid #38bdf8;
+  text-align: left;
+}
+
+.analise-container h4 {
+  color: #38bdf8;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.resumo-diferenca {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.destaque-preco {
+  color: #4ade80;
+  font-weight: bold;
+}
+
+.analise-container h5 {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.lista-motivos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lista-motivos li {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+  line-height: 1.4;
+}
