@@ -1,0 +1,21 @@
+          /* Estilização do bloco do cabeçalho */
+.header-container {
+  background-color: #1e293b; /* Cor de fundo escura (Azul noite) */
+  color: #ffffff;            /* Cor do texto em branco */
+  padding: 2rem 1rem;       /* Espaçamento interno em cima/baixo e lados */
+  text-align: center;        /* Centraliza o texto na tela */
+  border-bottom: 4px solid #3b82f6; /* Linha azul de destaque na borda inferior */
+}
+
+          /* Estilo do título principal */
+.header-title {
+  margin: 0;
+  font-size: 2rem;
+}
+
+          /* Estilo do subtítulo */
+.header-subtitle {
+  margin-top: 0.5rem;
+  color: #94a3b8; /* Cor cinza claro para dar contraste suave */
+  font-size: 1rem;
+}

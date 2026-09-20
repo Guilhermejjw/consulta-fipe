@@ -1,0 +1,16 @@
+/* Estilização do rodapé */
+.footer-container {
+  background-color: #0f172a; /* Cor bem escura para o rodapé */
+  color: #cbd5e1;            /* Texto cinza claro */
+  text-align: center;
+  padding: 1.5rem 1rem;
+  margin-top: auto;          /* Ajuda a empurrar o rodapé para o fim da tela */
+  border-top: 1px solid #334155;
+  font-size: 0.9rem;
+}
+
+.footer-credits {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
