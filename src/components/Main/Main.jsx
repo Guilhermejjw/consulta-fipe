@@ -190,7 +190,10 @@ export default function Main({ favoritos, setFavoritos }) {
             {anos.map((a) => (
               <option key={a.codigo} value={a.codigo}>
                 {/* Se o código ou texto contiver 32000, exibe Zero KM */}
-                {a.nome.includes('32000') ? a.nome.replace('32000', 'Zero KM') : a.nome}
+                {a.nome
+                .replaceAll('32000', 'Zero KM')
+                .replaceAll('Quilômetro zero', 'Zero KM')
+                .replaceAll('quilômetro zero', 'Zero KM')}
               </option>
             ))}
           </select>
