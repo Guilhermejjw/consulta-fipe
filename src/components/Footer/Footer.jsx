@@ -6,7 +6,7 @@ function Footer() {
   return (
     <footer className="footer-container">
       <p>
-        Projeto desenvolvido para o desafio da <strong>Kodie Academy</strong>.
+        Projeto desenvolvido por <strong>Guilherme Santos</strong>.
       </p>
       <p className="footer-credits">
         Dados fornecidos via API Pública da Tabela FIPE.
