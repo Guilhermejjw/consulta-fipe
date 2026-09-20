@@ -8,7 +8,7 @@
 
 .main-container h2 {
   text-align: center;
-  color: #1e293b;
+  color: #ffffff !important; /* Força o título a ficar branco e legível */
   margin-bottom: 1.5rem;
 }
 
