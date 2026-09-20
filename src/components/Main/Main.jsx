@@ -148,7 +148,7 @@ function Main() {
             <option value="">-- Selecione um Modelo --</option>
             {modelos.map((mod) => (
               <option key={mod.codigo} value={mod.codigo}>
-                {mod.nome.replace(FATOR/gi, 'FACTOR')}
+                {mod.nome.replace('/FATOR/gi', 'FACTOR')}
               </option>
             ))}
           </select>
