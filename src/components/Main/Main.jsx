@@ -187,6 +187,18 @@ function Main() {
         <div className="resultado-card">
           <h3>{resultado.Marca} {resultado.Modelo}</h3>
           <p className="preco-destaque">{resultado.Valor}</p>
+
+          {/* BOTÃO PARA VER FOTOS NO GOOGLE */}
+            <a 
+            href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(resultado.Marca + ' ' + resultado.Modelo + ' ' + (String(resultado.AnoModelo) === '32000' ? 'Zero KM' : resultado.AnoModelo))}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="btn-google-imagens"
+            >
+            🔍 Ver fotos no Google
+            </a>
+
+
           <div className="detalhes-grid">
             <p><strong>Ano/Modelo:</strong> {resultado.AnoModelo}</p>
             <p><strong>Combustível:</strong> {resultado.Combustivel}</p>
