@@ -134,3 +134,28 @@
   border-color: #94a3b8;
   color: #0f172a;
 }
+
+    /* Força a cor do texto e do fundo em todos os campos de seleção */
+.filtro-grupo select {
+  padding: 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #ffffff !important;
+  color: #0f172a !important; /* Força o texto a ficar bem escuro */
+  outline: none;
+  width: 100%;
+}
+
+/* Cor do texto para as opções que abrem dentro do menu */
+.filtro-grupo select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Quando o campo estiver desabilitado (cinza) */
+.filtro-grupo select:disabled {
+  background-color: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+}
