@@ -159,3 +159,33 @@
   color: #94a3b8 !important;
   cursor: not-allowed;
 }
+
+/* BOTÃO SALVAR NA GARAGEM */
+.btn-favoritar {
+  width: 100%;
+  margin-top: 1.2rem;
+  padding: 0.85rem 1.5rem;
+  background-color: #2563eb; /* Vermelho moderno */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.25);
+}
+
+.btn-favoritar:hover {
+  background-color: #dc2626; /* Vermelho mais escuro no passar do mouse */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(239, 68, 68, 0.35);
+}
+
+.btn-favoritar:active {
+  transform: translateY(0);
+}
