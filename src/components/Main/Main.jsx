@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import './Main.css';
 
-// Componente principal de consulta FIPE e gestão da garagem
+// Componente principal para consulta real da Tabela FIPE
 export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos }) {
-  // Estados para os filtros da consulta
+  // Estados para armazenar seleções e respostas da API
   const [tipoVeiculo, setTipoVeiculo] = useState('carros');
   const [marcas, setMarcas] = useState([]);
   const [marcaSelecionada, setMarcaSelecionada] = useState('');
@@ -14,11 +14,11 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
   const [anos, setAnos] = useState([]);
   const [anoSelecionado, setAnoSelecionado] = useState('');
 
-  // Estados de resultado e feedback visual
   const [resultado, setResultado] = useState(null);
   const [carregando, setCarregando] = useState(false);
+  const [mensagemErro, setMensagemErro] = useState('');
 
-  // 1. Busca marcas do tipo de veículo (com cache em localStorage)
+  // 1. BUSCA MARCAS NA API REAL DA FIPE
   useEffect(() => {
     setMarcas([]);
     setMarcaSelecionada('');
@@ -27,36 +27,29 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
     setAnos([]);
     setAnoSelecionado('');
     setResultado(null);
-
-    const cacheKey = `fipe_marcas_${tipoVeiculo}`;
-    const cacheData = localStorage.getItem(cacheKey);
-
-    if (cacheData) {
-      setMarcas(JSON.parse(cacheData));
-      return;
-    }
+    setMensagemErro('');
 
     setCarregando(true);
     fetch(`https://parallelum.com.br/fipe/api/v1/${tipoVeiculo}/marcas`)
       .then((res) => {
-        if (!res.ok) throw new Error(`Erro ${res.status}`);
+        if (!res.ok) {
+          throw new Error(res.status === 429 ? 'Limite de requisições atingido. Aguarde alguns instantes.' : 'Falha ao conectar com a API.');
+        }
         return res.json();
       })
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          localStorage.setItem(cacheKey, JSON.stringify(data));
-          setMarcas(data);
-        }
+        setMarcas(Array.isArray(data) ? data : []);
         setCarregando(false);
       })
       .catch((err) => {
         console.error('Erro ao buscar marcas:', err);
+        setMensagemErro(err.message);
         setMarcas([]);
         setCarregando(false);
       });
   }, [tipoVeiculo]);
 
-  // 2. Busca modelos da marca selecionada (com cache)
+  // 2. BUSCA MODELOS DA MARCA SELECIONADA
   useEffect(() => {
     if (!marcaSelecionada) return;
 
@@ -65,104 +58,82 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
     setAnos([]);
     setAnoSelecionado('');
     setResultado(null);
-
-    const cacheKey = `fipe_modelos_${tipoVeiculo}_${marcaSelecionada}`;
-    const cacheData = localStorage.getItem(cacheKey);
-
-    if (cacheData) {
-      setModelos(JSON.parse(cacheData));
-      return;
-    }
+    setMensagemErro('');
 
     setCarregando(true);
     fetch(`https://parallelum.com.br/fipe/api/v1/${tipoVeiculo}/marcas/${marcaSelecionada}/modelos`)
       .then((res) => {
-        if (!res.ok) throw new Error(`Erro ${res.status}`);
+        if (!res.ok) {
+          throw new Error(res.status === 429 ? 'Limite de requisições atingido. Aguarde alguns instantes.' : 'Falha ao buscar modelos.');
+        }
         return res.json();
       })
       .then((data) => {
-        const listaModelos = data && Array.isArray(data.modelos) ? data.modelos : [];
-        if (listaModelos.length > 0) {
-          localStorage.setItem(cacheKey, JSON.stringify(listaModelos));
-        }
-        setModelos(listaModelos);
+        setModelos(data && Array.isArray(data.modelos) ? data.modelos : []);
         setCarregando(false);
       })
       .catch((err) => {
         console.error('Erro ao buscar modelos:', err);
+        setMensagemErro(err.message);
         setModelos([]);
         setCarregando(false);
       });
   }, [marcaSelecionada, tipoVeiculo]);
 
-  // 3. Busca anos/combustíveis do modelo (com cache)
+  // 3. BUSCA ANOS DO MODELO SELECIONADO
   useEffect(() => {
-    if (!modeloSelecionado || !marcaSelecionada) return;
+    if (!modeloSelecionado) return;
 
     setAnos([]);
     setAnoSelecionado('');
     setResultado(null);
-
-    const cacheKey = `fipe_anos_${tipoVeiculo}_${marcaSelecionada}_${modeloSelecionado}`;
-    const cacheData = localStorage.getItem(cacheKey);
-
-    if (cacheData) {
-      setAnos(JSON.parse(cacheData));
-      return;
-    }
+    setMensagemErro('');
 
     setCarregando(true);
     fetch(`https://parallelum.com.br/fipe/api/v1/${tipoVeiculo}/marcas/${marcaSelecionada}/modelos/${modeloSelecionado}/anos`)
       .then((res) => {
-        if (!res.ok) throw new Error(`Erro ${res.status}`);
+        if (!res.ok) {
+          throw new Error(res.status === 429 ? 'Limite de requisições atingido. Aguarde alguns instantes.' : 'Falha ao buscar anos.');
+        }
         return res.json();
       })
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          localStorage.setItem(cacheKey, JSON.stringify(data));
-          setAnos(data);
-        }
+        setAnos(Array.isArray(data) ? data : []);
         setCarregando(false);
       })
       .catch((err) => {
         console.error('Erro ao buscar anos:', err);
+        setMensagemErro(err.message);
         setAnos([]);
         setCarregando(false);
       });
   }, [modeloSelecionado, marcaSelecionada, tipoVeiculo]);
 
-  // 4. Consulta o preço final do veículo selecionado na FIPE
+  // 4. CONSULTA O PREÇO FINAL DO VEÍCULO NA FIPE
   const buscarPrecoFipe = () => {
     if (!anoSelecionado) return;
 
-    const cacheKey = `fipe_preco_${tipoVeiculo}_${marcaSelecionada}_${modeloSelecionado}_${anoSelecionado}`;
-    const cacheData = localStorage.getItem(cacheKey);
-
-    if (cacheData) {
-      setResultado(JSON.parse(cacheData));
-      return;
-    }
-
     setCarregando(true);
+    setMensagemErro('');
     fetch(`https://parallelum.com.br/fipe/api/v1/${tipoVeiculo}/marcas/${marcaSelecionada}/modelos/${modeloSelecionado}/anos/${anoSelecionado}`)
       .then((res) => {
-        if (!res.ok) throw new Error(`Erro ${res.status}`);
+        if (!res.ok) {
+          throw new Error('Falha ao consultar preço na Tabela FIPE.');
+        }
         return res.json();
       })
       .then((data) => {
-        if (data && data.Valor) {
-          localStorage.setItem(cacheKey, JSON.stringify(data));
-          setResultado(data);
-        }
+        setResultado(data);
         setCarregando(false);
       })
       .catch((err) => {
         console.error('Erro ao buscar resultado FIPE:', err);
+        setMensagemErro(err.message);
         setCarregando(false);
       });
   };
 
-  // 5. Salva o veículo retornado na lista de favoritos (Garagem)
+  // 5. ADICIONA VEÍCULO CONSULTADO AOS FAVORITOS
   const adicionarAosFavoritos = () => {
     if (!resultado) return;
 
@@ -182,14 +153,43 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
       alert('Este veículo já está na sua Garagem!');
     }
   };
+    // 6. FUNÇÃO PARA COMPARTILHAR OU COPIAR O LINK DA CONSULTA
+  const compartilharConsulta = (modo) => {
+    if (!resultado) return;
+
+    const anoExibicao = String(resultado.AnoModelo).includes('32000') || String(resultado.AnoModelo).toLowerCase().includes('quilômetro')
+      ? 'Zero KM'
+      : resultado.AnoModelo;
+
+    const texto = `🚘 *Consulta Tabela FIPE*\n\n` +
+      `*Veículo:* ${resultado.Marca} ${resultado.Modelo}\n` +
+      `*Ano/Modelo:* ${anoExibicao}\n` +
+      `*Combustível:* ${resultado.Combustivel}\n` +
+      `*Preço FIPE:* ${resultado.Valor}\n` +
+      `*Mês de Referência:* ${resultado.MesReferencia}\n\n` +
+      `Confira em: https://consulta-fipe-one.vercel.app/`;
+
+    if (modo === 'whatsapp') {
+      const urlWhatsapp = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+      window.open(urlWhatsapp, '_blank');
+    } else if (modo === 'copiar') {
+      navigator.clipboard.writeText(texto)
+        .then(() => alert('📋 Informações do veículo copiadas para a área de transferência!'))
+        .catch(() => alert('Erro ao copiar texto.'));
+    }
+  };
 
   return (
     <main className="main-container">
       <h2>Busca de Veículos na Tabela FIPE</h2>
 
-      {/* Formulário de seleção encadeada */}
+      {mensagemErro && (
+        <div style={{ color: '#d9534f', backgroundColor: '#fdf7f7', padding: '10px', borderRadius: '6px', marginBottom: '15px', textAlign: 'center' }}>
+          ⚠️ {mensagemErro}
+        </div>
+      )}
+
       <div className="filtros-container">
-        {/* Seletor 1: Tipo de veículo */}
         <div className="filtro-grupo">
           <label>1. Tipo de Veículo:</label>
           <select 
@@ -202,7 +202,6 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
           </select>
         </div>
 
-        {/* Seletor 2: Marca */}
         <div className="filtro-grupo">
           <label>2. Marca:</label>
           <select 
@@ -219,7 +218,6 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
           </select>
         </div>
 
-        {/* Seletor 3: Modelo */}
         <div className="filtro-grupo">
           <label>3. Modelo:</label>
           <select 
@@ -236,7 +234,6 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
           </select>
         </div>
 
-        {/* Seletor 4: Ano / Combustível */}
         <div className="filtro-grupo">
           <label>4. Ano / Combustível:</label>
           <select 
@@ -256,7 +253,6 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
           </select>
         </div>
 
-        {/* Botão de consulta de preço */}
         <button 
           className="btn-buscar"
           onClick={buscarPrecoFipe}
@@ -266,7 +262,6 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
         </button>
       </div>
 
-      {/* Card de detalhes do veículo pesquisado */}
       {resultado && (
         <div className="resultado-card">
           <h3>{resultado.Marca} {resultado.Modelo}</h3>
@@ -298,10 +293,28 @@ export default function Main({ favoritos = [], setFavoritos, removerDosFavoritos
           <button className="btn-favoritar" onClick={adicionarAosFavoritos}>
             ❤️ Salvar na Garagem
           </button>
+          
+          {/* NOVOS BOTÕES DE COMPARTILHAMENTO */}
+          <div className="acoes-compartilhar" style={{ display: 'flex', gap: '10px', marginTop: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button 
+              className="btn-whatsapp" 
+              onClick={() => compartilharConsulta('whatsapp')}
+              style={{ backgroundColor: '#25D366', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              🟢 Enviar no WhatsApp
+            </button>
+
+            <button 
+              className="btn-copiar" 
+              onClick={() => compartilharConsulta('copiar')}
+              style={{ backgroundColor: '#6c757d', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              📋 Copiar Resumo
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Exibição dos veículos salvos na Garagem */}
       {favoritos && favoritos.length > 0 && (
         <div className="garagem-container">
           <h3>🏎️ Sua Garagem</h3>

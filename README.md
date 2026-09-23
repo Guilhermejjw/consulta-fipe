@@ -30,6 +30,14 @@ Resolver a falta de transparência e facilitar a pesquisa de preços no mercado 
 
 ---
 
+## 🔄 Interação com os Dados
+A aplicação permite interagir com os dados retornados da Tabela FIPE através de:
+- **Persistência Local (Garagem):** Adição e remoção dinâmica de veículos favoritos a partir das consultas efetuadas.
+- **Comparador:** Seleção e comparação direta das especificações e valores de dois veículos salvos na Garagem.
+- **Integração Externa:** Geração de buscas dinâmicas de imagens no Google com base nos parâmetros do veículo selecionado.
+
+---
+
 ## 🤖 Uso de Inteligência Artificial no Desenvolvimento
 Este projeto foi desenvolvido com o auxílio de IA gerativa como ferramenta de apoio pedagógico e mentoria de código. A IA foi utilizada para:
 - Estruturação do passo a passo do projeto e organização modular de componentes (`Header`, `Main`, `Footer`).
@@ -42,4 +50,4 @@ Este projeto foi desenvolvido com o auxílio de IA gerativa como ferramenta de a
 
 1. Clone este repositório:
    ```bash
-   git clone [https://github.com/Guilhermejjw/consulta-fipe.git](https://github.com/Guilhermejjw/consulta-fipe.git)
+   git clone https://github.com/Guilhermejjw/consulta-fipe.git
