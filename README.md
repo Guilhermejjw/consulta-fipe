@@ -48,6 +48,20 @@ Este projeto foi desenvolvido com o auxílio de IA gerativa como ferramenta de a
 
 ## 🚀 Como Executar o Projeto Localmente
 
+Prompts Utilizados no Desenvolvimento
+
+Abaixo está o prompt base de direcionamento fornecido à IA para a estruturação e desenvolvimento da aplicação:
+
+Prompt: Me ajude a construir uma aplicação de Consulta de Preços da Tabela FIPE (Carros, Motos e Caminhões) em React + Vite.
+---
+## Requisitos da Aplicação:
+ 1. Interface responsiva e moderna em CSS3/HTML5.
+ 2. Seleção de categoria (Carros, Motos, Caminhões) com filtros encadeados em tempo real (Marca -> Modelo -> Ano) consumindo a Fipe API REST.
+ 3. Exibição do resultado detalhado com Valor de Mercado, Código FIPE, Mês de Referência e tratamento amigável para modelos 'Zero KM'.
+ Diretrizes do Código:
+ - Estrutura modular em componentes React (`Header`, `Main`, `Footer`, etc.).
+ - Utilização de boas práticas com hooks (`useState`, `useEffect`).
+
 1. Clone este repositório:
    ```bash
    git clone https://github.com/Guilhermejjw/consulta-fipe.git
